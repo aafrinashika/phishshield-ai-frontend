@@ -12,19 +12,54 @@ export default function RegisterPage() {
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSubmit = e => {
-    e.preventDefault();
-    if (form.password !== form.confirmPassword) {
-      alert('Passwords do not match');
-      return;
-    }
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      navigate('/dashboard');
-    }, 1200);
-  };
+const handleSubmit = async e => {
+  e.preventDefault();
 
+  // Check passwords
+  if (form.password !== form.confirmPassword) {
+    alert('Passwords do not match');
+    return;
+  }
+
+  // Check password length
+  if (form.password.length < 8) {
+    alert('Password must be at least 8 characters');
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const response = await fetch('http://127.0.0.1:5000/api/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: form.name,
+        email: form.email,
+        password: form.password,
+        role: form.role
+      })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      alert('Registration successful!');
+      navigate('/login');
+    } else {
+      alert(data.message || 'Registration failed');
+    }
+
+  } catch (error) {
+    console.error('Registration error:', error);
+    alert('Cannot connect to backend. Make sure Flask is running.');
+
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <div className="auth-page">
       <div className="auth-left">

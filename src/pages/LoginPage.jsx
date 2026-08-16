@@ -9,17 +9,62 @@ export default function LoginPage() {
   const [showPw, setShowPw] = useState(false);
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
+const handleSubmit = async e => {
+  e.preventDefault();
 
-  const handleSubmit = e => {
-    e.preventDefault();
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      if (form.role === 'admin') navigate('/admin');
-      else navigate('/dashboard');
-    }, 1200);
-  };
+  setLoading(true);
 
+  try {
+    const response = await fetch('http://127.0.0.1:5000/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: form.email,
+        password: form.password
+      })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+
+      // Store logged-in user information
+      localStorage.setItem(
+        'phishshield_user',
+        JSON.stringify(data.user)
+      );
+
+      alert('Login successful!');
+
+      // Redirect based on actual database role
+      if (data.user.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
+
+    } else {
+
+      alert(data.message || 'Login failed');
+
+    }
+
+  } catch (error) {
+
+    console.error('Login error:', error);
+
+    alert(
+      'Cannot connect to backend. Make sure Flask is running.'
+    );
+
+  } finally {
+
+    setLoading(false);
+
+  }
+};
   return (
     <div className="auth-page">
       <div className="auth-left">
